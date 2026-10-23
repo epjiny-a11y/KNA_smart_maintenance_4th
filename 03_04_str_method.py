@@ -75,3 +75,16 @@ x = ' 경보 '
 print('[' + x + ']')    # [ 경보 ]
 x = ' 경보 '.strip()
 print('[' + x + ']')    # [경보]
+
+# join - 합치기 (리스트 -> 문자열)
+# 형식: '구분자'.join(리스트) (구분자가 앞에 옴)
+print('-'.join(['2025','01','15']))     # 2025-01-15
+
+# split + join 
+# - split: 문자열 -> 리스트
+# - join: 리스트 -> 문자열
+raw = '사과, 배, 감'
+p = raw.split(',')
+print(p)            # ['사과', '배', '감']
+print('/'.join(p))  # 사과/ 배/ 감
+print('/'.join([p[0].strip(), p[1].strip(), p[2].strip()]))
