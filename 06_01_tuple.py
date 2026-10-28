@@ -45,13 +45,16 @@ sensors = ('모터온도', 78, (3, 5))
 print(sensors[2][0])                        # 3
 
 # 튜플 리스트 정렬
-sensors = [(78, '모터온도'), (95, '베어링진동'), (32, '펌프압력')]
+sensors = [(78, '모터온도'),
+           (95, '베어링진동'),
+           (32, '펌프압력')]
 hot = sorted(sensors, reverse=True)
 print(hot)                                  # [(95, '베어링진동'), (78, '모터온도'), (32, '펌프압력')]
 
 print('실습 3')
 sensors = [('모터온도', 78, (3, 4)), ('펌프압력', 95, (5, 2)), ('회전속도', 120, (8, 6))]
-for name, value, (x, y) in sensors:
+for name, value, pos in sensors:
+    x, y = pos
     print(name, '위치', x, y)
     if x <= 5:
         print(name)
