@@ -80,3 +80,26 @@ with open('data/08_summary.csv', 'w', encoding='utf-8', newline='') as f:
     writer.writerow(['설비ID', '상태'])    
     writer.writerow(['PRESS-01', 1])     
     writer.writerow(['PRESS-02', 1])    
+
+print('실습 6')
+
+import csv
+
+result = []
+
+with open('data/08_press_13_261029_3.csv', 'r', encoding='utf8', newline='') as f:
+    reader = csv.reader(f)
+    header = next(reader) 
+    print(header) 
+
+    for row in reader:
+        temperature = float(row[4])
+        if temperature > 90:
+            result.append(row)
+
+with open('data/08_current_over90.csv', 'w', encoding='utf8', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(header)  
+    writer.writerows(result)            
+
+print("저장된 행 수:", len(result))
