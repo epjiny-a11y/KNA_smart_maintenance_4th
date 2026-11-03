@@ -90,3 +90,18 @@ for name in names:
         continue
 
 print('처리한 파일:', done)
+
+print('실습 5')
+
+def check_value(text, lo = 0.0, hi = 5000.0):
+    v = float(text)
+
+    if not (lo <= v <= hi):
+        raise ValueError(f'범위를 벗어난 값: {v}')
+    return v
+
+for t in ['128.5', '결측', '-999']:
+    try:
+        print('통과:', check_value(t))
+    except ValueError as e:
+        print('제외:', e)
