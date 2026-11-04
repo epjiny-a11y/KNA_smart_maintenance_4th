@@ -9,7 +9,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent
 DATA_PATH = BASE / "data" / "09_ict_inspection_dirty.csv"
 REPORT_PATH = BASE / "09_report.txt"
-RUN_TO_STEP = 5  # 실습 1 완성 후 2, ... 6으로 변경
+RUN_TO_STEP = 6  # 실습 1 완성 후 2, ... 6으로 변경
 
 
 def read_csv_data(path):
@@ -94,9 +94,9 @@ def filter_valid_rows(rows, lo=0.0, hi=5000.0):
 
 def save_report(path, total_rows, valid_rows, rejected, stats):
     lines = ['===리포트===',
-             f'측정값 평균 {stats['mean']}',
+             f'측정값 평균{stats['mean']}',
              f'전체 {total_rows}건 / 유효 {len(valid_rows)}건 / 제외 {len(rejected)}건',
-             f'측정값 평균 {stats['mean']} 최고{stats['max']} 최저{stats['min']}']
+             f'측정값 평균 {stats['mean']} · 최고 {stats['max']} · 최저 {stats['min']}']
 
     with open(path, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
@@ -109,28 +109,19 @@ def save_report(path, total_rows, valid_rows, rejected, stats):
 
 
 def verify_part_counts(valid_rows):
-    by_part, dropped = group_by_part(valid_rows)
+    by_valid, _ = group_by_part(valid_rows)         # 정상 데이터 15건 -> 부품명별로 분류 / _: 부품명 누락 건수를 사용 X
     total = 0
 
-    for part, part_rows in by_part.items():
-        stats = calc_stats(part_rows, 2)
+    for v in sorted(by_valid):
+        total += calc_stats(by_valid[v], 2)['count']
+    print(total == len(valid_rows))
 
-        if stats is not None:
-            count = stats['count']
-            total += count
-            print(part, ':', count, '건')
-
-    check_sum = (total == len(valid_rows))
-    print('합계:', total)
-    print('유효 건수:', len(valid_rows))
-    print('검증 결과', check_sum)
-
-    return check_sum
+      
 
     """[실습 6] 유효 행을 부품별로 다시 묶고 합계가 전체와 같은지 확인."""
     # TODO: group_by_part(valid_rows)를 재사용하고
     # 각 부품에 calc_stats(part_rows, 2)를 적용해 건수를 합산하세요.
-    raise NotImplementedError("실습 6: 부품별 검증 함수를 완성하세요")
+    # raise NotImplementedError("실습 6: 부품별 검증 함수를 완성하세요")
 
 
 def main():
