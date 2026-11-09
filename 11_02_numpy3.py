@@ -106,8 +106,123 @@ temp = data[:, 1]
 avg = np.nanmean(temp)
 std = np.nanstd(temp)
 
+# 표준화
 z = (temp - avg) / std
 mask = np.abs(z) > 2
 
 print(cyc[mask].astype(int))
 print('최대 Z-score:', round(np.nanmax(z), 2))
+
+print('실습 4')
+
+F = 'data/11_hydraulic_cooler.csv'
+
+def col(c):
+    return np.genfromtxt(F, delimiter=',', skip_header=1, usecols=c)
+
+cyc = col(0)
+temp = col(1)
+
+avg = np.nanmean(temp)
+std = np.nanstd(temp)
+
+upper = avg + 3 * std
+
+mask = temp > upper
+alarm = cyc[mask]
+
+print('3시그마 상한', round(upper, 2))
+print('경보 사이클', alarm.astype(int))
+print('경보 개수', len(alarm))
+
+# 센서 간 상관관계 - corrcorf
+# - 세기는 절댓값이 정함. +0.99와 -0.99는 세기가 똑같고 방향만 반대
+# - 양수: 한쪽이 오르면 다른 한쪽도 오름 / 음수는 반대
+# - 0에 가까움 -> 관계가 없는 상태
+
+temp = np.array([70, 72, 74, 76, 78])
+vib = np.array([2.0, 2.2, 2.5, 2.7, 3.0])
+print(round(float(np.corrcoef(temp, vib)[0, 1]), 3))            # 0.998
+
+# 2D 배열 axis별 통계 활용
+# 행은 센서, 열은 시점인 행렬 axis로 방향을 정해 통계
+# axis = 1 - 각 행을 옆으로 > 센서별 통계
+# axis = 0 - 각 행을 아래로 > 시점별 통계
+
+data = np.array([[70., 72., 74.], [2.0, 2.2, 2.5]])
+print(np.round(np.mean(data, axis = 1), 2))                     # [72.    2.23]
+print(np.round(np.mean(data, axis = 0), 2))                     # [36.   37.1  38.25]
+
+print('실습 5')
+
+F = 'data/11_hydraulic_cooler.csv'
+
+def col(c):
+    return np.genfromtxt(F, delimiter=',', skip_header=1, usecols=c)
+
+temp = col(1)
+ce = col(3)
+
+corr = np.corrcoef(temp, ce)
+
+print('상관계수 행렬')
+print(corr)
+
+result = corr[0, 1]
+
+print('상관계수', round(result, 2))
+
+print('실습 6')
+
+F = 'data/11_hydraulic_cooler.csv'
+
+def col(c):
+    return np.genfromtxt(F, delimiter=',', skip_header=1, usecols=c)
+
+M = np.stack([col(1), col(2), col(3), col(4)])
+print(M.shape)  # (4, 50)
+print(np.round(np.nanmean(M, axis = 1), 1))    
+print(np.round(np.nanstd(M, axis = 1), 1))      
+
+print('실습 7')
+
+F = 'data/11_hydraulic_cooler.csv'
+
+def col(c):
+    return np.genfromtxt(F, delimiter=',', skip_header=1, usecols=c)
+
+cyc = col(0)
+temp = col(1)
+
+avg = np.nanmean(temp)
+cs = np.cumsum(temp - avg)
+idx = np.argmin(cs)
+
+print(int(cyc[idx]), '번과', int(cyc[idx + 1]), '번 사이가 경계 후보')
+
+print('실습 8')
+
+F = 'data/11_hydraulic_cooler.csv'
+
+def col(c):
+    return np.genfromtxt(F, delimiter=',', skip_header=1, usecols=c)
+
+cyc = col(0)
+temp = col(1)
+ce = col(3)
+status = col(5)
+
+z_temp = (temp - np.nanmean(temp)) / np.nanstd(temp)
+z_ce = (ce - np.nanmean(ce)) / np.nanstd(ce)
+
+z_temp = np.abs(z_temp)
+z_ce = np.abs(z_ce)
+score = z_temp + z_ce
+
+top = np.argsort(score)[-3:][::-1]
+
+print(score.shape)          # (50,)
+
+print(f'최고 점수 {int(cyc[top[0]])}번({score[top[0]]:.2f})')
+print('상위 세 시점', cyc[top].astype(int))
+print('교육용 상태 라벨(47~50번)은', *cyc[status == 1].astype(int), sep=' ')
