@@ -79,3 +79,54 @@ print('미매칭', unmatched['설비ID'].head(1).tolist(), len(unmatched), '행'
 
 no_log = m_outer[m_outer['샷'].isna()]
 print(no_log['설비ID'].tolist(), len(no_log), '행')
+
+# merge는 옆으로 칸을 붙이고, concat은 아래로 줄을 쌓는다
+# concat은 키 열이 필요 없고, 칸 이름만 맞으면 된다
+
+# pd.concat
+
+# ex) 설비 로그를 1차, 2차로 나눠 받은 경우
+part1 = log.iloc[:100].reset_index(drop=True)
+part2 = log.iloc[100:].reset_index(drop=True)
+print(part1.shape, part2.shape)         # (100, 8) (100, 8)
+
+stacked = pd.concat([part1, part2])
+print(stacked.shape)                    # (200, 8)
+print(stacked.index[-3:].tolist())      # [97, 98, 99]
+print(len(stacked.loc[[0]]))            # 2
+
+# - 번호를 다시 매기기 -> ignore_index
+renumbered = pd.concat([part1, part2], ignore_index=True)
+print(int(renumbered.index[-1]))        # 199
+
+# - 칸이(열이) 다른 표를 붙이면 -> 빈 칸
+# 붙이기 전에 두 표의 columns 비교
+# -> set(표1.columns) - set(표2.columns)
+
+print('실습 3')
+
+F_SHOT = 'data/13_diecasting_shot.csv'
+
+log = pd.read_csv(F_SHOT)
+
+part1 = log.iloc[:100].reset_index(drop=True)
+part2 = log.iloc[100:].reset_index(drop=True)
+stacked = pd.concat([part1, part2])
+
+print(stacked.shape)  
+print(len(stacked.loc[[0]]))
+
+renumbered = pd.concat([part1, part2], ignore_index=True)
+print(int(renumbered.index[-1]))
+
+print('실습 4')
+
+joined = log.merge(master, on='설비ID', how='left')
+with_line = joined[joined['라인'].notna()]
+print('라인이 붙은 줄', len(with_line))
+
+not_ok = with_line[with_line['품질등급'] != '양품']
+print('양품 아닌 줄', len(not_ok))
+
+result = not_ok.sort_values('비스킷두께', ascending=False)
+print(result[['샷', '설비ID', '라인', '비스킷두께', '품질등급']].head(5).to_string(index=False))
