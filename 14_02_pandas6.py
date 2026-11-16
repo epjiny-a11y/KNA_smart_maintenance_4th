@@ -5,9 +5,11 @@ import pandas as pd
 
 F = 'data/14_hydraulic.csv'
 F_QC = 'data/14_hydraulic_qc.csv'
+F_STD = 'data/14_hydraulic_std.csv'
 
 df = pd.read_csv(F)
 qc = pd.read_csv(F_QC)
+fs = pd.read_csv(F_STD)
 
 print(round(df['온도'].mean(), 2))
 print(round(df['온도'].std(), 2))
@@ -154,11 +156,15 @@ result = df[cols].corr()
 print(result.round(3))
 
 # 가장 강한 짝: 온도-냉각효율 -0.951
-# 가장 약한 짜기 압력-냉각효율 -0.131
+# 가장 약한 짝: 압력-냉각효율 -0.131
 
 print('실습 4')
 
-num = df.select_dtypes(include='number')
+F_QC = 'data/14_hydraulic_qc.csv'
+
+qc = pd.read_csv(F_QC)
+
+num = qc.select_dtypes(include='number')
 
 corr = num.corr()
 
@@ -180,5 +186,72 @@ top5 = very_strong.reindex(
     very_strong.abs().sort_values(ascending=False).index
 ).head(5)
 
-print('상위 5개 조합:')
-print(top5)
+print('상위 5쌍:', top5)
+
+print('실습 5')
+
+F = 'data/14_hydraulic.csv'
+
+df = pd.read_csv(F)
+df2 = df.copy()
+
+counts = df2['냉각기상태'].value_counts()
+
+print(counts)
+
+df2['온도구간'] = pd.cut(
+    df2['온도'],
+    bins=[0, 40, 50, 200],
+    labels=['낮음', '보통', '높음']
+)
+
+print(df2['온도구간'].value_counts())
+
+state = pd.get_dummies(df2['냉각기상태'], dtype=int)
+
+joined = pd.concat([df2, state], axis=1)
+
+print('합친 표:', joined.shape)
+
+report = joined.groupby('냉각기상태').agg(
+    측정수=('온도', 'count'),
+    평균온도=('온도', 'mean'),
+    최대온도=('온도', 'max'),
+    평균진동=('진동', 'mean'),
+    평균냉각효율=('냉각효율', 'mean')
+)
+
+report['위험도'] = report.index.map({
+    '정상': 1,
+    '저하': 2,
+    '고장': 3
+})
+
+report = report.sort_values(
+    ['위험도', '평균온도'],
+    ascending=[False, False]
+)
+
+print(report.round(2).to_string())
+print('진단표:', report.shape)
+
+table = joined.pivot_table(
+    values='진동',
+    index='냉각기상태',
+    columns='온도구간',
+    aggfunc='mean',
+    observed=False
+)
+
+print(table.round(3))
+print('교차표:', table.shape)
+
+a = joined['온도'].corr(joined['진동'])
+b = joined['온도'].corr(joined['냉각효율'])
+
+print('온도-진동 상관계수:', round(a, 3))
+print('온도-냉각효율 상관계수:', round(b, 3))
+
+print('맨 위 상태:', report.index[0])
+print('위험도:', report['위험도'].iloc[0])
+print('평균온도:', round(report['평균온도'].iloc[0], 2), '도')
